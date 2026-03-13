@@ -1,0 +1,27 @@
+Design plan Hartree-Fock Luca Verduin
+Program steps:
+-Read system input
+-Setup g, T, V, S matrices for system (Probably best to structure in one subroutine)
+-Solve eigenvalue for core Hamiltonian (One routine for creating one for solving Fock equation, enter with D=0) 
+-Results in eigenvectors 
+- With these eigenvectors construct new Density matrix (/=0) (subroutine for constructing D also one for initializing D with 0.0)
+-Enter into a loop
+-Construct Fock matrix from previous density matrix (Same subroutine as before)
+-Diagonalize Fock matrix to obtain eigenvalues and eigenvectors (Same routine as before)
+-Check convergence (max iterations or difference in eigenvalues tolerance)
+-If converged exit loop
+-Calculate Ehf (Routine for this)
+-Print out relevant things (energy, orbital levels and eigenvectors) and create output file (routine for outputting everything)
+
+N (amount of orbitals): 			Int
+Nocc , Nvirt: 				Int
+Density matrix: 				NxN double precision
+Fock matrix: 				NxN double precision
+C_new / C_old eigvector matrix: 	NxN double precision
+ε eigvalue vector: 			N double precision
+g matrix: 				NxN double precision
+T matrix: 				NxN double precision
+V matrix: 				NxN double precision
+S matrix: 				NxN double precision
+Ehf: 					double precision
+Loop variables : 			Int
