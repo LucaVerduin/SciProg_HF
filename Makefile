@@ -41,7 +41,7 @@ VPATH = src:src/interfaces:src/gen1int:src/gen1int/all_lowlevel:src/interest
 # main function in C or C++ or the file containing the program procedure in
 # Fortran).  Used only to generate a library object containing all other
 # procedures, if desired.
-MAIN = myapp.f90
+MAIN = main.F90
 
 # Name of source files (if any) which must be recompiled if any other source
 # files need to be recompiled.

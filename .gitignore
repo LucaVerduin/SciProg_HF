@@ -147,3 +147,7 @@ vcpkg_installed/
 # test output & cache
 Testing/
 .cache/
+
+#MYAPP
+myapp
+myapp.gnu.optimised
