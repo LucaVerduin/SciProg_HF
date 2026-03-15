@@ -73,50 +73,41 @@ program HartreeFock
 
 
     tolerance = 0.0001d0
-    ! IMPLEMENTING FOCK MATRIX
-    
-    do lambda = 1, n_ao
-      do kappa = 1, n_ao
-            F(kappa, lambda) = H(kappa, lambda) + sum( (2.d0*ao_integrals(:,:,kappa,lambda) - ao_integrals(:,lambda,kappa,:))*D )
+    icycle = 0
+    max_cycles = 1000
+
+    ! SCF loop
+    do
+      
+      ! Calculating Fock matrix from D
+      do lambda = 1, n_ao
+        do kappa = 1, n_ao
+              F(kappa, lambda) = H(kappa, lambda) + sum( (2.d0*ao_integrals(:,:,kappa,lambda) - ao_integrals(:,lambda,kappa,:))*D )
+        end do
       end do
+
+      ! Saving copy of previous density matrix and calculating new density matrix
+      D_old = D
+      call solve_genev(F,S,C,eps)
+      call calculateDensity(C,D,n_occ)
+
+      ! Calculate energy of this itteration
+      E_HF = sum(H*D)         ! Hcore part
+      E_HF = E_HF + sum(F*D)  ! F part
+
+      print '(a,2x,i4,2x,f14.8,a)', "Energy cycle ", icycle, E_HF, " Ha" 
+
+      icycle = icycle + 1 ! Count # cycles
+
+      ! Calculating delta_D and checking for convergence
+      delta_D = sqrt(sum( (D_old - D)**2 ))
+      if (delta_D < tolerance .or. icycle==max_cycles) then
+        print '(a,t13,i4,t18,a)', "Converged in", icycle, "cycles"
+        exit
+      end if 
+
     end do
-    
-    ! /IMPLEMENTING FOCK MATRIX
-
-    ! IMPLEMENTING ENERGY
-
-    E_HF = sum(H*D)         ! Hcore part
-    E_HF = E_HF + sum(F*D)  ! F part
-
-    ! /IMPLEMENTING ENERGY
-
-    ! IMPLEMENTING DIAGONALIZATION
-
-    D_old = D
-
-    call solve_genev(F,S,C,eps)
-    call calculateDensity(C,D,n_occ)
-
-    delta_D = sqrt(sum( (D_old - D)**2 ))
-
-
-
-    ! /IMPLEMENTING DIAGONALIZATION
-
-    ! IMPLEMENTING CONVERGENCE
-
-    if (delta_D < tolerance) then
-      print *, "Converged"
-    end if 
-
-    ! /IMPLEMENTING CONVERGENCE
-
-    !  do lambda = 1, n_ao
-    !     do kappa = 1, n_ao
-    !        E_HF = E_HF + 2.D0 *  D(kappa,lambda) * sum(D*ao_integrals(:,:,kappa,lambda))
-    !        E_HF = E_HF - 1.D0 *  D(kappa,lambda) * sum(D*ao_integrals(:,lambda,kappa,:))
-    !    end do
-    !  end do
+    ! End SCF loop
    
      print*, "The Hartree-Fock energy:    ", E_HF
 
