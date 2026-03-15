@@ -19,7 +19,7 @@ program HartreeFock
      ! Variable naming as in the description of the exercise
      integer  :: n_AO, n_occ
      integer  :: kappa, lambda, mu, nu
-     integer :: max_cycles, cycle
+     integer :: max_cycles, icycle
      real(8)  :: E_HF
      real(8), allocatable :: H(:,:), F(:,:), V(:,:),T(:,:),S(:,:), C(:,:), eps(:), D(:,:), D_old(:,:)
      real(8) :: delta_D, tolerance
