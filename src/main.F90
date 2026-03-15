@@ -6,6 +6,7 @@ program HartreeFock
    use molecular_structure
    use ao_basis
    use compute_integrals
+   use HartreeFock
    use diagonalization
 
      implicit none
@@ -17,12 +18,8 @@ program HartreeFock
 
      ! Variable naming as in the description of the exercise
      integer  :: n_AO, n_occ
-     integer  :: kappa, lambda
-     real(8)  :: E_HF
-     real(8), allocatable :: F(:,:),V(:,:),T(:,:),S(:,:), C(:,:), eps(:), D(:,:)
-
-     ! The following large array can be eliminated when Fock matrix contruction is implemented
-     real(8), allocatable :: ao_integrals (:,:,:,:)
+     integer :: max_cycles
+     real(8) :: tolerance
    
      ! Definition of the molecule
      call define_molecule(molecule)
@@ -34,47 +31,12 @@ program HartreeFock
      ! Definition of the number of occupied orbitals
      n_occ = 3 ! hardwired for this demonstration program, should be set via input
 
-     ! Compute the overlap matrix
-     allocate (S(n_AO,n_AO))
-     call   compute_1e_integrals ("OVL",ao_basis,ao_basis,S)
+    call coreHamiltonian(n_AO, n_occ, molecule, ao_basis)
 
-     ! Compute the kinetic matrix
-     allocate (T(n_AO,n_AO))
-     call   compute_1e_integrals ("KIN",ao_basis,ao_basis,T)
+    tolerance = 0.0001d0
+    max_cycles = 1000
 
-     ! Compute the potential matrix
-     allocate (V(n_AO,n_AO))
-     call   compute_1e_integrals ("POT",ao_basis,ao_basis,V,molecule)
-
-     ! Compute the core Hamiltonian matrix (the potential is positive, we scale with -e = -1 to get to the potential energy matrix)
-     allocate (F(n_AO,n_AO))
-     F = T - V
-
-     ! Diagonalize the Fock matrix
-     allocate (C(n_AO,n_AO))
-     allocate (eps(n_AO))
-     call solve_genev (F,S,C,eps)
-     print*, "Orbital energies for the core Hamiltonian:",eps
-
-     ! Form the density matrix
-     allocate (D(n_AO,n_AO))
-     do lambda = 1, n_ao
-        do kappa = 1, n_ao
-           D(kappa,lambda) = sum(C(kappa,1:n_occ)*C(lambda,1:n_occ))
-       end do
-     end do
-
-     ! Compute the Hartree-Fock energy (this should be modified, see the notes)
-     E_HF = 2.D0 * sum(F*D)
-     allocate (ao_integrals(n_AO,n_AO,n_AO,n_AO))
-     ! Compute all 2-electron integrals
-     call generate_2int (ao_basis,ao_integrals)
-     do lambda = 1, n_ao
-        do kappa = 1, n_ao
-           E_HF = E_HF + 2.D0 *  D(kappa,lambda) * sum(D*ao_integrals(:,:,kappa,lambda))
-           E_HF = E_HF - 1.D0 *  D(kappa,lambda) * sum(D*ao_integrals(:,lambda,kappa,:))
-       end do
-     end do
+    call SCFprocedure(n_AO, n_occ, max_cycles, tolerance)
    
      print*, "The Hartree-Fock energy:    ", E_HF
 
@@ -103,8 +65,13 @@ program HartreeFock
      ! Be:  2 uncontracted s-funs:    l      coord          exp      
      call add_shell_to_basis(ao_basis,0,(/0.D0,0.D0,0.D0/),4.D0)
      call add_shell_to_basis(ao_basis,0,(/0.D0,0.D0,0.D0/),1.D0)
+    ! Add 1 extra s function to Be for step 1
+     call add_shell_to_basis(ao_basis,0,(/0.d0,0.d0,0.d0/),2.d0)
      ! He:  1 uncontracted s-fun:     l      coord          exp      
      call add_shell_to_basis(ao_basis,0,(/2.D0,0.D0,0.D0/),1.D0)
+     ! Add 1 extra s function to H for step 1
+     call add_shell_to_basis(ao_basis,0,(/2.d0,0.d0,0.d0/),2.d0)
    end subroutine
+
 
    
