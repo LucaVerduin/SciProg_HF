@@ -6,6 +6,7 @@ program HartreeFock
    use molecular_structure
    use ao_basis
    use compute_integrals
+   use HartreeFock
    use diagonalization
 
      implicit none
@@ -20,7 +21,8 @@ program HartreeFock
      integer  :: kappa, lambda, mu, nu
      integer :: max_cycles, cycle
      real(8)  :: E_HF
-     real(8), allocatable :: H(:,:), F(:,:), V(:,:),T(:,:),S(:,:), C(:,:), eps(:), D(:,:)
+     real(8), allocatable :: H(:,:), F(:,:), V(:,:),T(:,:),S(:,:), C(:,:), eps(:), D(:,:), D_old(:,:)
+     real(8) :: delta_D, tolerance
 
      ! The following large array can be eliminated when Fock matrix contruction is implemented
      real(8), allocatable :: ao_integrals (:,:,:,:)
@@ -49,6 +51,7 @@ program HartreeFock
 
      ! Compute the core Hamiltonian matrix (the potential is positive, we scale with -e = -1 to get to the potential energy matrix)
      allocate (F(n_AO,n_AO))
+     allocate (H(n_AO,n_AO))
      H = T - V
 
      ! Diagonalize the Fock matrix
@@ -59,18 +62,17 @@ program HartreeFock
 
      ! Form the density matrix
      allocate (D(n_AO,n_AO))
-     do lambda = 1, n_ao
-        do kappa = 1, n_ao
-           D(kappa,lambda) = sum(C(kappa,1:n_occ)*C(lambda,1:n_occ))
-       end do
-     end do
+     allocate (D_old(n_AO,n_AO))
 
-     ! Compute the Hartree-Fock energy (this should be modified, see the notes)
-     E_HF = 2.D0 * sum(H*D)
+     call calculateDensity(C,D,n_occ)
+
      allocate (ao_integrals(n_AO,n_AO,n_AO,n_AO))
      ! Compute all 2-electron integrals
      call generate_2int (ao_basis,ao_integrals)
 
+
+
+    tolerance = 0.0001d0
     ! IMPLEMENTING FOCK MATRIX
     
     do lambda = 1, n_ao
@@ -79,14 +81,42 @@ program HartreeFock
       end do
     end do
     
-    ! IMPLEMENTING FOCK MATRIX
+    ! /IMPLEMENTING FOCK MATRIX
 
-     do lambda = 1, n_ao
-        do kappa = 1, n_ao
-           E_HF = E_HF + 2.D0 *  D(kappa,lambda) * sum(D*ao_integrals(:,:,kappa,lambda))
-           E_HF = E_HF - 1.D0 *  D(kappa,lambda) * sum(D*ao_integrals(:,lambda,kappa,:))
-       end do
-     end do
+    ! IMPLEMENTING ENERGY
+
+    E_HF = sum(H*D)         ! Hcore part
+    E_HF = E_HF + sum(F*D)  ! F part
+
+    ! /IMPLEMENTING ENERGY
+
+    ! IMPLEMENTING DIAGONALIZATION
+
+    D_old = D
+
+    call solve_genev(F,S,C,eps)
+    call calculateDensity(C,D,n_occ)
+
+    delta_D = sqrt(sum( (D_old - D)**2 ))
+
+
+
+    ! /IMPLEMENTING DIAGONALIZATION
+
+    ! IMPLEMENTING CONVERGENCE
+
+    if (delta_D < tolerance) then
+      print *, "Converged"
+    end if 
+
+    ! /IMPLEMENTING CONVERGENCE
+
+    !  do lambda = 1, n_ao
+    !     do kappa = 1, n_ao
+    !        E_HF = E_HF + 2.D0 *  D(kappa,lambda) * sum(D*ao_integrals(:,:,kappa,lambda))
+    !        E_HF = E_HF - 1.D0 *  D(kappa,lambda) * sum(D*ao_integrals(:,lambda,kappa,:))
+    !    end do
+    !  end do
    
      print*, "The Hartree-Fock energy:    ", E_HF
 
@@ -122,5 +152,6 @@ program HartreeFock
      ! Add 1 extra s function to H for step 1
      call add_shell_to_basis(ao_basis,0,(/2.d0,0.d0,0.d0/),2.d0)
    end subroutine
+
 
    
