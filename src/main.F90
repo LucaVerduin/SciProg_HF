@@ -73,11 +73,11 @@ program HartreeFock
 
     ! IMPLEMENTING FOCK MATRIX
     
-    ! do lambda = 1, n_ao
-    !   do kappa = 1, n_ao
-    !         Fi(kappa, lambda) = F(kappa, lambda) + sum( (2.d0*ao_integrals(:,:,kappa,lambda) - ao_integrals(:,lambda,kappa,:))*D )
-    !   end do
-    ! end do
+    do lambda = 1, n_ao
+      do kappa = 1, n_ao
+            F(kappa, lambda) = H(kappa, lambda) + sum( (2.d0*ao_integrals(:,:,kappa,lambda) - ao_integrals(:,lambda,kappa,:))*D )
+      end do
+    end do
     
     ! IMPLEMENTING FOCK MATRIX
 
