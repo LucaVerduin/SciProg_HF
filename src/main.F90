@@ -17,9 +17,10 @@ program HartreeFock
 
      ! Variable naming as in the description of the exercise
      integer  :: n_AO, n_occ
-     integer  :: kappa, lambda
+     integer  :: kappa, lambda, mu, nu
+     integer :: max_cycles, cycle
      real(8)  :: E_HF
-     real(8), allocatable :: F(:,:),V(:,:),T(:,:),S(:,:), C(:,:), eps(:), D(:,:)
+     real(8), allocatable :: H(:,:), F(:,:), V(:,:),T(:,:),S(:,:), C(:,:), eps(:), D(:,:)
 
      ! The following large array can be eliminated when Fock matrix contruction is implemented
      real(8), allocatable :: ao_integrals (:,:,:,:)
@@ -48,12 +49,12 @@ program HartreeFock
 
      ! Compute the core Hamiltonian matrix (the potential is positive, we scale with -e = -1 to get to the potential energy matrix)
      allocate (F(n_AO,n_AO))
-     F = T - V
+     H = T - V
 
      ! Diagonalize the Fock matrix
      allocate (C(n_AO,n_AO))
      allocate (eps(n_AO))
-     call solve_genev (F,S,C,eps)
+     call solve_genev (H,S,C,eps)
      print*, "Orbital energies for the core Hamiltonian:",eps
 
      ! Form the density matrix
@@ -65,10 +66,21 @@ program HartreeFock
      end do
 
      ! Compute the Hartree-Fock energy (this should be modified, see the notes)
-     E_HF = 2.D0 * sum(F*D)
+     E_HF = 2.D0 * sum(H*D)
      allocate (ao_integrals(n_AO,n_AO,n_AO,n_AO))
      ! Compute all 2-electron integrals
      call generate_2int (ao_basis,ao_integrals)
+
+    ! IMPLEMENTING FOCK MATRIX
+    
+    ! do lambda = 1, n_ao
+    !   do kappa = 1, n_ao
+    !         Fi(kappa, lambda) = F(kappa, lambda) + sum( (2.d0*ao_integrals(:,:,kappa,lambda) - ao_integrals(:,lambda,kappa,:))*D )
+    !   end do
+    ! end do
+    
+    ! IMPLEMENTING FOCK MATRIX
+
      do lambda = 1, n_ao
         do kappa = 1, n_ao
            E_HF = E_HF + 2.D0 *  D(kappa,lambda) * sum(D*ao_integrals(:,:,kappa,lambda))
@@ -103,8 +115,12 @@ program HartreeFock
      ! Be:  2 uncontracted s-funs:    l      coord          exp      
      call add_shell_to_basis(ao_basis,0,(/0.D0,0.D0,0.D0/),4.D0)
      call add_shell_to_basis(ao_basis,0,(/0.D0,0.D0,0.D0/),1.D0)
+    ! Add 1 extra s function to Be for step 1
+     call add_shell_to_basis(ao_basis,0,(/0.d0,0.d0,0.d0/),2.d0)
      ! He:  1 uncontracted s-fun:     l      coord          exp      
      call add_shell_to_basis(ao_basis,0,(/2.D0,0.D0,0.D0/),1.D0)
+     ! Add 1 extra s function to H for step 1
+     call add_shell_to_basis(ao_basis,0,(/2.d0,0.d0,0.d0/),2.d0)
    end subroutine
 
    
