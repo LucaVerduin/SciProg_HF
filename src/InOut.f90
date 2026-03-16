@@ -2,7 +2,7 @@ module inout
     use molecular_structure
     use ao_basis
     implicit none
-    public getInput, ao_basis, molecule
+    public getInput, ao_basis, molecule, defined_atoms, input_atoms
     private atom
 
     type(molecular_structure_t) :: molecule
@@ -17,60 +17,77 @@ module inout
         real(8), allocatable :: exponents(:)
     end type
 
+    type atom_pointer
+        type(atom), pointer :: atom_type
+        real(8) :: coordinates(3)
+    end type
+
+    type(atom), allocatable, target :: defined_atoms(:)
+    type(atom_pointer), allocatable :: input_atoms(:)
+
 contains
 
 subroutine getInput(filename)
     character(32), intent(in) :: filename
-    character(250) :: line
-    character(20) :: l_ang
-    character(20) :: exponents
-    integer :: io, i, char
-    integer :: n_defined_atoms, rewind_lines, index_atom, n_functions
-    type(atom), allocatable :: defined_atoms(:)
+    character(300) :: line
+    character(75) :: l_ang, exponents, temp_coordinates
+    integer :: io, i, char, point_index
+    integer :: n_defined_atoms, rewind_lines, index_atom, n_functions, n_atoms
 
     io = 15
     n_defined_atoms = 0
+    n_atoms = 0
     index_atom = 0
     open(io, file=filename, status='old', action='read')
 
     do
         read(io, '(a)', end=10)line
-    
+        if (line(1:1) == "!") then
+            continue
+        end if
+
+        ! If statement for defing atoms
         if (line(1:12)=="DEFINE ATOMS") then
-            rewind_lines = 0
+
+            ! First find how many defined_atoms need to be allocated
+            rewind_lines = 0 ! Count so instead of reopening just rewind # of lines
             do
                 read(io, '(a)')line             
                 rewind_lines = rewind_lines + 1
-                if (line(1:13)=="/DEFINE ATOMS") then
+                if (line(1:13)=="/DEFINE ATOMS") then ! End with /DEFINE ATOMS
                     exit
                 else if (line(1:1) /= " ") then
                     n_defined_atoms = n_defined_atoms + 1
                 end if
             end do
 
-            allocate(defined_atoms(n_defined_atoms))
+            allocate(defined_atoms(n_defined_atoms)) ! Allocate array for defined atoms
 
-            do i=1,rewind_lines
+            do i=1,rewind_lines ! Rewind back to first line after DEFINE ATOMS
                 backspace(io)
             end do
 
-            index_atom = 0
+            index_atom = 0 ! Count which atom we are assigning
             do i=1,rewind_lines
                 read(io, '(a)')line
-                if (line(1:13)=="/DEFINE ATOMS") then
+                if (line(1:13)=="/DEFINE ATOMS") then ! End with /DEFINE ATOMS
                     exit
-                else if (line(1:1)/=" ") then
-                    index_atom = index_atom + 1
+                else if (line(1:1)/=" ") then   ! Ignore lines starting with a space
+                    index_atom = index_atom + 1 ! Increase index counter
 
+                    ! Line should contain symbol, charge, n_electrons, array string for l, and array string for exponents.
                     read(line, *)defined_atoms(index_atom)%symbol, defined_atoms(index_atom)%charge, defined_atoms(index_atom)%n_electrons, l_ang, exponents
 
-
-                    n_functions = 1
+                    n_functions = 1 ! Count how many functions are given for this atom
                     do char=1,len(trim(l_ang))
                         if (l_ang(char:char)==" ") then
                             n_functions = n_functions + 1
                         end if
                     end do
+
+                    if (n_functions < defined_atoms(index_atom)%n_electrons/2) then
+                        print '(a,1x,i3,2x,a)', "WARNING: amount of basis functions for atom", index_atom, "smaller than n_electrons/2"
+                    end if
 
                     ! print *, i, n_functions
                     allocate(defined_atoms(index_atom)%angular_momenta(n_functions))
@@ -80,17 +97,48 @@ subroutine getInput(filename)
 
                 end if
             end do
+        end if
+
+        if (line(1:5) == "ATOMS") then
+            rewind_lines = 0
+            do
+                read(io, '(a)')line             
+                    rewind_lines = rewind_lines + 1
+                    if (line(1:6)=="/ATOMS") then ! End with /DEFINE ATOMS
+                        exit
+                    else if (line(1:1) /= " ") then
+                        n_atoms = n_atoms + 1
+                    end if
+            end do
+
+            allocate(input_atoms(n_atoms))
+            do i=1,rewind_lines ! Rewind back to first line after DEFINE ATOMS
+                backspace(io)
+            end do
+
+            index_atom = 0
+            do
+                read(io, '(a)')line
+                if (line(1:6)=="/ATOMS") then
+                    exit
+                else if (line(1:1) /= " ") then
+                    index_atom = index_atom + 1
+                    read(line, *)point_index, temp_coordinates
+                    input_atoms(index_atom)%atom_type => defined_atoms(point_index)
+                    read(temp_coordinates, *)input_atoms(index_atom)%coordinates
+                end if
+            end do
 
         end if
 
-        print *, n_defined_atoms, "Defined atoms"
-        print *, defined_atoms(1)%symbol
-        print *, defined_atoms(1)%charge
-        print *, defined_atoms(1)%n_electrons
-        print *, defined_atoms(1)%angular_momenta
-        print *, defined_atoms(1)%exponents
+
     end do
     10 close(io)
+
+    do i=1,size(input_atoms)
+        print *, input_atoms(i)%atom_type%symbol
+        print *, input_atoms(i)%coordinates
+    end do
 
 end subroutine
 
