@@ -1,0 +1,20 @@
+DEFINE ATOMS
+
+He 2.0 2.0 "0 0" "1.0 2.0"
+Be 4.0 4.0 "0 0 0" "4.0 1.0 2.0"
+
+/DEFINE ATOMS
+
+ATOMS
+
+1 "0.0 0.0 0.0"
+2 "2.0 0.0 0.0"
+
+/ATOMS
+
+SETTINGS
+
+tolerance 0.0000001
+max_cycles 1000
+
+/SETTINGS

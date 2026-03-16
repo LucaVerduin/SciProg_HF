@@ -1,0 +1,30 @@
+! define an atom type by inputting
+! Symbol, charge, n_electrons, angular momenta, exponents
+DEFINE ATOMS
+
+H 1.0 1.0 "0 0 0" "0.1 1.0 3.0"
+c 6.0 6.0 "0 0 0 0 0 1 1 1 2" "0.10 0.35 1.0 3.0 10.0 0.2 1.0 5.0 1.0"
+
+/DEFINE ATOMS
+
+
+! add atoms to system by inputting corresponding definition index and coordinates
+! index is same order as definition of atoms
+ATOMS
+
+1 "0.6276 0.6276 0.6276"
+1 "0.6276 -0.6276 -0.6276"
+1 "-0.6276 0.6276 -0.6276"
+1 "-0.6276 -0.6276 0.6276"
+2 "0.0 0.0 0.0"
+
+/ATOMS
+
+! comments can not be put inside of a block (i.e. DEFINE ATOMS - /DEFINE ATOMS or ATOMS - /ATOMS)
+
+SETTINGS
+
+tolerance 0.000000001
+maxcycles 1000
+
+/SETTINGS
