@@ -14,8 +14,6 @@ program HartreeFock
 
      ! Variable naming as in the description of the exercise
      integer  :: n_AO, n_occ
-     integer :: max_cycles
-     real(8) :: tolerance
      character(32) :: filename
    
     filename = "testinput.txt"
@@ -34,9 +32,6 @@ program HartreeFock
     stop "stop here for generating input"
 
     call coreHamiltonian(n_AO, n_occ, molecule, ao_basis)
-
-    tolerance = 0.0001d0
-    max_cycles = 1000
 
     call SCFprocedure(n_AO, n_occ, max_cycles, tolerance)
    

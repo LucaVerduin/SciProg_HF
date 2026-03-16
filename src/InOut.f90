@@ -2,9 +2,11 @@ module inout
     use molecular_structure
     use ao_basis
     implicit none
-    public getInput, ao_basis, molecule, defined_atoms, input_atoms
+    public getInput, ao_basis, molecule, defined_atoms, input_atoms, tolerance, max_cycles
     private atom
 
+    real(8) :: tolerance
+    integer :: max_cycles
     type(molecular_structure_t) :: molecule
     ! Variable containing the atomic orbital basis
     type(basis_set_info_t) :: ao_basis
@@ -30,7 +32,7 @@ contains
 subroutine getInput(filename)
     character(32), intent(in) :: filename
     character(300) :: line
-    character(75) :: l_ang, exponents, temp_coordinates
+    character(75) :: l_ang, exponents, temp_coordinates, dummy_char
     integer :: io, i, char, point_index
     integer :: n_defined_atoms, rewind_lines, index_atom, n_functions, n_atoms
 
@@ -131,6 +133,19 @@ subroutine getInput(filename)
 
         end if
 
+        if (line(1:8) == "SETTINGS") then
+            do
+                read(io, '(a)')line
+                if (line(1:9) == "/SETTINGS") then
+                    exit
+                else if (line(1:9) == "tolerance") then
+                    read(line, *)dummy_char, tolerance
+                else if (line(1:9) == "maxcycles") then
+                    read(line, *)dummy_char, max_cycles
+                end if
+            end do
+        end if
+
 
     end do
     10 close(io)
@@ -139,6 +154,8 @@ subroutine getInput(filename)
         print *, input_atoms(i)%atom_type%symbol
         print *, input_atoms(i)%coordinates
     end do
+
+    print *, tolerance, max_cycles
 
 end subroutine
 
