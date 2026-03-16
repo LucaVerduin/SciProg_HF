@@ -8,19 +8,19 @@ program HartreeFock
    use compute_integrals
    use HartreeFock
    use diagonalization
+   use InOut
 
      implicit none
-
-     ! Variable containing the molecular structure
-     type(molecular_structure_t) :: molecule
-     ! Variable containing the atomic orbital basis
-     type(basis_set_info_t) :: ao_basis
 
      ! Variable naming as in the description of the exercise
      integer  :: n_AO, n_occ
      integer :: max_cycles
      real(8) :: tolerance
+     character(32) :: filename
    
+    filename = "testinput.txt"
+    call getInput(filename)
+
      ! Definition of the molecule
      call define_molecule(molecule)
 
@@ -30,6 +30,8 @@ program HartreeFock
    
      ! Definition of the number of occupied orbitals
      n_occ = 3 ! hardwired for this demonstration program, should be set via input
+
+    stop "stop here for generating input"
 
     call coreHamiltonian(n_AO, n_occ, molecule, ao_basis)
 
