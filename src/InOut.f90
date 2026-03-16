@@ -189,11 +189,10 @@ end subroutine
 subroutine define_basis()
     integer :: atom, ifunc
 
-    n_AO = 0
+
 
     do atom = 1,size(input_atoms) ! Loop over all input atoms
         do ifunc = 1,size(input_atoms(atom)%atom_type%angular_momenta) ! Loop over all input angular momenta (all input functions in definition of %atom_Type)
-            n_AO = n_AO + 1 ! Increase counter for number of atomic orbitals in ao_basis
             call add_shell_to_basis(ao_basis,&                                              ! Add to ao_basis
                                     input_atoms(atom)%atom_type%angular_momenta(ifunc),&    ! Angular momentum function
                                     input_atoms(atom)%coordinates,&                         ! At coordinates of atom
@@ -201,6 +200,7 @@ subroutine define_basis()
              )
         end do
     end do
+    n_AO = ao_basis%nao
 
 end subroutine
 

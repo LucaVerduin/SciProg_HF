@@ -13,8 +13,8 @@ real(8), allocatable :: ao_integrals (:,:,:,:)
 
 contains
 
-subroutine coreHamiltonian(n_ao, n_occ, molecule, ao_basis)
-    integer, intent(in) :: n_ao, n_occ
+subroutine coreHamiltonian(n_AO, n_occ, molecule, ao_basis)
+    integer, intent(in) :: n_AO, n_occ
      type(molecular_structure_t), intent(in) :: molecule
      type(basis_set_info_t), intent(in) :: ao_basis
      integer :: kappa, lambda, mu, nu
@@ -26,6 +26,7 @@ subroutine coreHamiltonian(n_ao, n_occ, molecule, ao_basis)
      ! Compute the kinetic matrix
      allocate (T(n_AO,n_AO))
      call   compute_1e_integrals ("KIN",ao_basis,ao_basis,T)
+
 
      ! Compute the potential matrix
      allocate (V(n_AO,n_AO))

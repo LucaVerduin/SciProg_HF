@@ -15,7 +15,7 @@ program HartreeFock
      ! Variable naming as in the description of the exercise
      character(32) :: filename
    
-    filename = "BeHe.txt"
+    filename = "CH4.txt"
     call getInput(filename)
     call generate_molecule()
     call define_basis()
