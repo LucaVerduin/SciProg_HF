@@ -13,11 +13,11 @@ program HartreeFock
      implicit none
 
      ! Variable naming as in the description of the exercise
-     integer  :: n_AO, n_occ
      character(32) :: filename
    
     filename = "testinput.txt"
     call getInput(filename)
+    call generate_molecule()
 
      ! Definition of the molecule
      call define_molecule(molecule)

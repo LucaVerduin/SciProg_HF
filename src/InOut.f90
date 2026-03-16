@@ -1,30 +1,23 @@
 module inout
     use molecular_structure
     use ao_basis
+    use atom_definition
     implicit none
     public getInput, ao_basis, molecule, defined_atoms, input_atoms, tolerance, max_cycles
+    public generate_molecule, n_AO, n_occ
     private atom
 
-    real(8) :: tolerance
-    integer :: max_cycles
+    real(8) :: tolerance ! Tolerance criterium from input
+    integer :: max_cycles ! max_cycles from input
+    integer :: n_AO, n_occ ! To be determined from system
+
+    ! Variable containing molecule data
     type(molecular_structure_t) :: molecule
     ! Variable containing the atomic orbital basis
     type(basis_set_info_t) :: ao_basis
-
-    type atom
-        character(4) :: symbol
-        real(8) :: charge
-        real(8) :: n_electrons
-        integer, allocatable :: angular_momenta(:)
-        real(8), allocatable :: exponents(:)
-    end type
-
-    type atom_pointer
-        type(atom), pointer :: atom_type
-        real(8) :: coordinates(3)
-    end type
-
+    ! Variable containing definitions of atoms
     type(atom), allocatable, target :: defined_atoms(:)
+    ! Variable containing atoms of the system
     type(atom_pointer), allocatable :: input_atoms(:)
 
 contains
@@ -156,6 +149,10 @@ subroutine getInput(filename)
     end do
 
     print *, tolerance, max_cycles
+
+end subroutine
+
+subroutine generate_molecule()
 
 end subroutine
 
