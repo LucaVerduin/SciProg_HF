@@ -4,14 +4,27 @@ module HartreeFock
     use compute_integrals
     use diagonalization
     implicit none
-    private
+    private write_tofile, output_file, print_every
     public SCFprocedure, coreHamiltonian, calculateDensity, H, F, V, T, S, C, eps, D, D_old, E_HF, delta_D, ao_integrals
+    public set_output
 
 real(8), allocatable :: H(:,:), F(:,:), V(:,:),T(:,:),S(:,:), C(:,:), eps(:), D(:,:), D_old(:,:)
 real(8)  :: E_HF, delta_D
 real(8), allocatable :: ao_integrals (:,:,:,:)
+character(50) :: output_file
+logical :: write_tofile
+integer :: print_every
 
 contains
+
+subroutine set_output(outfile, outtofile)
+    character(50), intent(in) :: outfile
+    logical, intent(in) :: outtofile
+    
+    write_tofile = outtofile
+    output_file = outfile
+
+end subroutine
 
 subroutine coreHamiltonian(n_AO, n_occ, molecule, ao_basis)
     integer, intent(in) :: n_AO, n_occ

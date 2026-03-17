@@ -23,5 +23,6 @@ SETTINGS
 
 tolerance 0.0000001
 maxcycles 1000
+outfile BeHe_OUT.txt
 
 /SETTINGS

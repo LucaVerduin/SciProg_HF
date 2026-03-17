@@ -5,13 +5,14 @@ module inout
     implicit none
     public getInput, ao_basis, molecule, defined_atoms, input_atoms, tolerance, max_cycles
     public generate_molecule, n_AO, n_occ
-    public outfile
+    public outfile, output_tofile
     private atom
 
     real(8) :: tolerance ! Tolerance criterium from input
     integer :: max_cycles ! max_cycles from input
     integer :: n_AO, n_occ ! To be determined from system
     character(50) :: outfile ! Destination txt file for the output
+    logical :: output_tofile
 
     ! Variable containing molecule data
     type(molecular_structure_t) :: molecule
@@ -35,6 +36,8 @@ subroutine getInput(filename)
     n_defined_atoms = 0
     n_atoms = 0
     index_atom = 0
+    output_tofile = .false.
+
     open(io, file=filename, status='old', action='read')
 
     do
@@ -137,8 +140,10 @@ subroutine getInput(filename)
                     read(line, *)dummy_char, tolerance
                 else if (line(1:9) == "maxcycles") then
                     read(line, *)dummy_char, max_cycles
-                else if (line(1:9) == "outfile") then
-                    read(line, *)dummy_char, outfile
+                else if (line(1:7) == "outfile") then
+                    output_tofile = .true.
+                    dummy_char = trim(line(8:))
+                    read(dummy_char, *)outfile
                 end if
 
             end do
@@ -148,14 +153,33 @@ subroutine getInput(filename)
     end do
     10 close(io)
 
-    print '(a,/)', "Atoms in system:"
-    do i=1,size(input_atoms)
-        print *, input_atoms(i)%atom_type%symbol
-        print *, input_atoms(i)%coordinates
-    end do
-    print *, ""
-    print '(a,e12.5)', "Tolerance: ",tolerance
-    print '(a,i4)', "Max Cycles: ", max_cycles
+    if (output_tofile) then
+        open(io, file=outfile, action='write')
+            write(io, '(a,/)')"INPUT --------"
+            write(io, '(a)')"Atoms in system"
+            do i=1,size(input_atoms)
+                write(io, *)input_atoms(i)%atom_type%symbol
+                write(io, *)input_atoms(i)%coordinates
+            end do
+            write(io, *)""
+            write(io, '(a,t15,e12.5)')"Tolerance",tolerance
+            write(io, '(a,t16,i4)')"Max Cycles: ",max_cycles
+            write(io, '(a,t14,2x,a)')"Output: ",outfile
+            write(io, '(/,a)')"END INPUT ----"
+        close(io)
+        print '(i4, a)', size(input_atoms), "  Atoms in system"
+        print '(i4, a)', size(defined_atoms), "  Defined atom types"
+    else
+        print '(a,/)', "Atoms in system:"
+        do i=1,size(input_atoms)
+            print *, input_atoms(i)%atom_type%symbol
+            print *, input_atoms(i)%coordinates
+        end do
+        print *, ""
+        print '(a,e12.5)', "Tolerance: ",tolerance
+        print '(a,i4)', "Max Cycles: ", max_cycles
+        write(io, '(a,t14,2x,a)')"Output: ",outfile
+    end if
 
 
 end subroutine

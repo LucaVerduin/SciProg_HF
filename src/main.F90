@@ -17,9 +17,12 @@ program HartreeFock
    
     filename = "CH4.txt"
     call getInput(filename)
+    call set_output(outfile, write_tofile)
     call generate_molecule()
     call define_basis()
     print '(3/,a)', ""
+
+    stop "STOP HERE FOR INPUT"
 
     call coreHamiltonian(n_AO, n_occ, molecule, ao_basis)
 
