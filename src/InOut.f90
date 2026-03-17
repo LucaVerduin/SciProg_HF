@@ -5,11 +5,13 @@ module inout
     implicit none
     public getInput, ao_basis, molecule, defined_atoms, input_atoms, tolerance, max_cycles
     public generate_molecule, n_AO, n_occ
+    public outfile
     private atom
 
     real(8) :: tolerance ! Tolerance criterium from input
     integer :: max_cycles ! max_cycles from input
     integer :: n_AO, n_occ ! To be determined from system
+    character(50) :: outfile ! Destination txt file for the output
 
     ! Variable containing molecule data
     type(molecular_structure_t) :: molecule
@@ -18,7 +20,7 @@ module inout
     ! Variable containing definitions of atoms
     type(atom), allocatable, target :: defined_atoms(:)
     ! Variable containing atoms of the system
-    type(atom_pointer), allocatable :: input_atoms(:)
+    type(atom_pointer), allocatable :: input_atoms(:)    
 
 contains
 
@@ -135,7 +137,10 @@ subroutine getInput(filename)
                     read(line, *)dummy_char, tolerance
                 else if (line(1:9) == "maxcycles") then
                     read(line, *)dummy_char, max_cycles
+                else if (line(1:9) == "outfile") then
+                    read(line, *)dummy_char, outfile
                 end if
+
             end do
         end if
 
