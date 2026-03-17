@@ -158,30 +158,28 @@ subroutine getInput(filename)
     10 close(io)
 
     if (output_tofile) then
+        io = 10
         open(io, file=outfile, action='write')
-            write(io, '(a,/)')"INPUT --------"
-            write(io, '(a)')"Atoms in system"
-            do i=1,size(input_atoms)
-                write(io, *)input_atoms(i)%atom_type%symbol, input_atoms(i)%coordinates
-            end do
-            write(io, *)""
-            write(io, '(a,t17,e12.5)')"Tolerance",tolerance
-            write(io, '(a,t18,i4)')"Max Cycles: ",max_cycles
-            write(io, '(a,t16,2x,a)')"Output: ",outfile
-            write(io, '(a,t15,i4)')"Print Every: ", print_every
-            write(io, '(/,a)')"END INPUT ----"
-        close(io)
-        print '(i4, a)', size(input_atoms), "  Atoms in system"
-        print '(i4, a)', size(defined_atoms), "  Defined atom types"
     else
-        print '(a,/)', "Atoms in system:"
-        do i=1,size(input_atoms)
-            print *, input_atoms(i)%atom_type%symbol, input_atoms(i)%coordinates
-        end do
-        print *, ""
-        print '(a,e12.5)', "Tolerance: ",tolerance
-        print '(a,i4)', "Max Cycles: ", max_cycles
-        print '(a,t14,2x,a)', "Output: ",outfile
+        io = 6
+    end if
+
+    write(io, '(a,/)')"INPUT --------"
+    write(io, '(a)')"Atoms in system"
+
+    do i=1,size(input_atoms)
+        write(io, *)input_atoms(i)%atom_type%symbol, input_atoms(i)%coordinates
+    end do
+
+    write(io, *)""
+    write(io, '(a,t17,e12.5)')"Tolerance",tolerance
+    write(io, '(a,t18,i4)')"Max Cycles: ",max_cycles
+    write(io, '(a,t16,2x,a)')"Output: ",outfile
+    write(io, '(a,t15,i4)')"Print Every: ", print_every
+    write(io, '(/,a)')"END INPUT ----"
+
+    if (output_tofile) then
+        close(io)
     end if
 
 

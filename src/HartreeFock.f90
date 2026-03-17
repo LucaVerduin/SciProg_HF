@@ -56,11 +56,20 @@ subroutine coreHamiltonian(n_AO, n_occ, molecule, ao_basis)
      allocate (eps(n_AO))
      call solve_genev (H,S,C,eps)
      
-     open(io, file=output_file, status='old', access='append', action='write')
+     if (write_tofile) then
+        io = 10
+        open(io, file=output_file, status='old', access='append', action='write')
+     else
+        io = 6
+     end if
+
         write(io, '(2/,a,/)')"CALCULATION --------"
         write(io, '(a)')"Orbital energies for the core hamiltonian"
         write(io, '(8(f16.6))')eps
-     close(io)
+
+     if (write_tofile) then
+      close(io)
+     end if
 
      ! Form the density matrix
      allocate (D(n_AO,n_AO))
@@ -83,8 +92,11 @@ subroutine SCFprocedure(n_AO, n_occ, max_cycles, tolerance, print_every)
     icycle = 0
 
     if (write_tofile) then
+        io = 10
         open(io, file=output_file, status='old', access='append', action='write')
         write(io, '(/,a)')""
+    else
+        io = 6
     end if
 
     ! SCF loop
@@ -119,11 +131,7 @@ subroutine SCFprocedure(n_AO, n_occ, max_cycles, tolerance, print_every)
       end if
     
       if ( (mod(icycle, print_every)==0) .or. (icycle==max_cycles) ) then
-        if (write_tofile) then
             write(io, '(a,2x,i4,2x,f14.8,a,f14.8)')"Energy cycle ", icycle, E_HF, " Ha       convergence: ", delta_D
-        else
-            print '(a,2x,i4,2x,f14.8,a,f14.8)', "Energy cycle ", icycle, E_HF, " Ha       convergence: ", delta_D 
-        end if
       end if
 
     icycle = icycle + 1 ! Count # cycles
@@ -133,13 +141,9 @@ subroutine SCFprocedure(n_AO, n_occ, max_cycles, tolerance, print_every)
             write(io, '(/,a)')"END CALCULATION -----"
             write(io, '(/,a,i4,a)')"Exited After ",icycle," SCF cycles"
             write(io, '(a,a)')"Exit status: ",exit_status
-        else
-            print '(/,a,i4,a)', "Exited After ",icycle," SCF cycles"
-            print '(a,t15,a)',"Exit status: ", exit_status
         end if
         exit
     end if
-
 
     end do
     ! End SCF loop
