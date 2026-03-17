@@ -4,7 +4,7 @@ module HartreeFock
     use compute_integrals
     use diagonalization
     implicit none
-    private write_tofile, output_file, print_every
+    private write_tofile, output_file, print_every, io
     public SCFprocedure, coreHamiltonian, calculateDensity, H, F, V, T, S, C, eps, D, D_old, E_HF, delta_D, ao_integrals
     public set_output
 
@@ -14,6 +14,7 @@ real(8), allocatable :: ao_integrals (:,:,:,:)
 character(50) :: output_file
 logical :: write_tofile
 integer :: print_every
+integer :: io = 10
 
 contains
 
@@ -54,7 +55,12 @@ subroutine coreHamiltonian(n_AO, n_occ, molecule, ao_basis)
      allocate (C(n_AO,n_AO))
      allocate (eps(n_AO))
      call solve_genev (H,S,C,eps)
-     print*, "Orbital energies for the core Hamiltonian:",eps
+     
+     open(io, file=output_file, status='old', access='append', action='write')
+        write(io, '(2/,a,/)')"CALCULATION --------"
+        write(io, '(a)')"Orbital energies for the core hamiltonian"
+        write(io, '(8(f16.6))')eps
+     close(io)
 
      ! Form the density matrix
      allocate (D(n_AO,n_AO))

@@ -22,9 +22,11 @@ program HartreFock
     call define_basis()
     print '(3/,a)', ""
 
-    stop "STOP HERE FOR INPUT"
+    ! stop "STOP HERE FOR INPUT"
 
     call coreHamiltonian(n_AO, n_occ, molecule, ao_basis)
+
+    stop "STOP HERE FOR CORE HAMILTONIAN"
 
     call SCFprocedure(n_AO, n_occ, max_cycles, tolerance)
    
