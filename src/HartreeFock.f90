@@ -11,8 +11,8 @@ module HartreeFock
 real(8), allocatable :: H(:,:), F(:,:), V(:,:),T(:,:),S(:,:), C(:,:), eps(:), D(:,:), D_old(:,:)
 real(8)  :: E_HF, delta_D
 real(8), allocatable :: ao_integrals (:,:,:,:)
-character(50) :: output_file
-logical :: write_tofile
+character(50) :: output_file, exit_status
+logical :: write_tofile, is_converged
 integer :: print_every
 integer :: io = 10
 
@@ -74,12 +74,18 @@ subroutine coreHamiltonian(n_AO, n_occ, molecule, ao_basis)
 
 end subroutine
 
-subroutine SCFprocedure(n_AO, n_occ, max_cycles, tolerance)
+subroutine SCFprocedure(n_AO, n_occ, max_cycles, tolerance, print_every)
     integer, intent(in) :: max_cycles, n_AO, n_occ
     real(8), intent(in) :: tolerance
+    integer, intent(in) :: print_every
     integer :: icycle, kappa, lambda, mu, nu
 
     icycle = 0
+
+    if (write_tofile) then
+        open(io, file=output_file, status='old', access='append', action='write')
+        write(io, '(/,a)')""
+    end if
 
     ! SCF loop
     do
@@ -100,19 +106,47 @@ subroutine SCFprocedure(n_AO, n_occ, max_cycles, tolerance)
       E_HF = sum(H*D)         ! Hcore part
       E_HF = E_HF + sum(F*D)  ! F part
 
-      print '(a,2x,i4,2x,f14.8,a)', "Energy cycle ", icycle, E_HF, " Ha" 
-
-      icycle = icycle + 1 ! Count # cycles
-
-      ! Calculating delta_D and checking for convergence
+      ! Calculating delta_D
       delta_D = sqrt(sum( (D_old - D)**2 ))
-      if (delta_D < tolerance .or. icycle==max_cycles) then
-        print '(a,t13,i6,t20,a)', "Converged in", icycle, "cycles"
+
+      ! Checking for convergence
+      if (delta_D < tolerance) then
+        is_converged = .true.
+        exit_status = "Converged"
+      else if (icycle == max_cycles) then
+        is_converged = .true.
+        exit_status = "Max Iterations"
+      end if
+    
+      if ( (mod(icycle, print_every)==0) .or. (icycle==max_cycles) ) then
+        if (write_tofile) then
+            write(io, '(a,2x,i4,2x,f14.8,a,f14.8)')"Energy cycle ", icycle, E_HF, " Ha       convergence: ", delta_D
+        else
+            print '(a,2x,i4,2x,f14.8,a,f14.8)', "Energy cycle ", icycle, E_HF, " Ha       convergence: ", delta_D 
+        end if
+      end if
+
+    icycle = icycle + 1 ! Count # cycles
+
+    if (is_converged) then
+        if (write_tofile) then
+            write(io, '(2/,a)')"END CALCULATION -----"
+            write(io, '(/,a,i4,a)')"Exited After ",icycle," SCF cycles"
+            write(io, '(a,a)')"Exit status: ",exit_status
+        else
+            print '(2/,a,i4,a)', "Exited After ",icycle," SCF cycles"
+            print '(a,a)',"Exit status:", exit_status
+        end if
         exit
-      end if 
+    end if
+
 
     end do
     ! End SCF loop
+    
+    if (write_tofile) then
+        close(io)
+    end if
 
 end subroutine
 

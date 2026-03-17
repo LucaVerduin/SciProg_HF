@@ -5,14 +5,15 @@ module inout
     implicit none
     public getInput, ao_basis, molecule, defined_atoms, input_atoms, tolerance, max_cycles
     public generate_molecule, n_AO, n_occ
-    public outfile, output_tofile
+    public outfile, output_tofile, print_every
     private atom
 
     real(8) :: tolerance ! Tolerance criterium from input
     integer :: max_cycles ! max_cycles from input
+    integer :: print_every ! Determine every how many cycles to print in scf
     integer :: n_AO, n_occ ! To be determined from system
     character(50) :: outfile ! Destination txt file for the output
-    logical :: output_tofile
+    logical :: output_tofile ! Used to enable writing to output file (only if it is given in input file)
 
     ! Variable containing molecule data
     type(molecular_structure_t) :: molecule
@@ -36,6 +37,7 @@ subroutine getInput(filename)
     n_defined_atoms = 0
     n_atoms = 0
     index_atom = 0
+    print_every = 5
     output_tofile = .false.
 
     open(io, file=filename, status='old', action='read')
@@ -144,6 +146,8 @@ subroutine getInput(filename)
                     output_tofile = .true.
                     dummy_char = trim(line(8:))
                     read(dummy_char, *)outfile
+                else if (line(1:10) == "printevery") then
+                    read(line, *)dummy_char, print_every
                 end if
 
             end do
@@ -161,9 +165,10 @@ subroutine getInput(filename)
                 write(io, *)input_atoms(i)%atom_type%symbol, input_atoms(i)%coordinates
             end do
             write(io, *)""
-            write(io, '(a,t15,e12.5)')"Tolerance",tolerance
-            write(io, '(a,t16,i4)')"Max Cycles: ",max_cycles
-            write(io, '(a,t14,2x,a)')"Output: ",outfile
+            write(io, '(a,t17,e12.5)')"Tolerance",tolerance
+            write(io, '(a,t18,i4)')"Max Cycles: ",max_cycles
+            write(io, '(a,t16,2x,a)')"Output: ",outfile
+            write(io, '(a,t15,i4)')"Print Every: ", print_every
             write(io, '(/,a)')"END INPUT ----"
         close(io)
         print '(i4, a)', size(input_atoms), "  Atoms in system"
@@ -176,7 +181,7 @@ subroutine getInput(filename)
         print *, ""
         print '(a,e12.5)', "Tolerance: ",tolerance
         print '(a,i4)', "Max Cycles: ", max_cycles
-        write(io, '(a,t14,2x,a)')"Output: ",outfile
+        print '(a,t14,2x,a)', "Output: ",outfile
     end if
 
 

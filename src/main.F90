@@ -26,9 +26,11 @@ program HartreFock
 
     call coreHamiltonian(n_AO, n_occ, molecule, ao_basis)
 
-    stop "STOP HERE FOR CORE HAMILTONIAN"
+    ! stop "STOP HERE FOR CORE HAMILTONIAN"
 
-    call SCFprocedure(n_AO, n_occ, max_cycles, tolerance)
+    call SCFprocedure(n_AO, n_occ, max_cycles, tolerance, print_every)
+
+    stop "STOP HERE FOR SCF"
    
      print*, "The Hartree-Fock energy:    ", E_HF
 
