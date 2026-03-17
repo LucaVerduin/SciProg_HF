@@ -20,7 +20,6 @@ program HartreFock
     call set_output(outfile, output_tofile)
     call generate_molecule()
     call define_basis()
-    print '(3/,a)', ""
 
     ! stop "STOP HERE FOR INPUT"
 

@@ -94,10 +94,10 @@ subroutine SCFprocedure(n_AO, n_occ, max_cycles, tolerance, print_every)
     if (write_tofile) then
         io = 10
         open(io, file=output_file, status='old', access='append', action='write')
-        write(io, '(/,a)')""
     else
         io = 6
     end if
+    write(io, '(/,a)')""
 
     ! SCF loop
     do
@@ -137,11 +137,9 @@ subroutine SCFprocedure(n_AO, n_occ, max_cycles, tolerance, print_every)
     icycle = icycle + 1 ! Count # cycles
 
     if (is_converged) then
-        if (write_tofile) then
-            write(io, '(/,a)')"END CALCULATION -----"
-            write(io, '(/,a,i4,a)')"Exited After ",icycle," SCF cycles"
-            write(io, '(a,a)')"Exit status: ",exit_status
-        end if
+        write(io, '(/,a)')"END CALCULATION -----"
+        write(io, '(/,a,i4,a)')"Exited After ",icycle," SCF cycles"
+        write(io, '(a,a)')"Exit status: ",exit_status
         exit
     end if
 

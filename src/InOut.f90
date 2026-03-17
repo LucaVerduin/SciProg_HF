@@ -202,11 +202,11 @@ subroutine generate_molecule()
     end do
 
     if (mod(n_electrons,2.0) == 0.0) then
-        print '(/,a)', "Even amount of electrons"
+        ! print '(a)', "Even amount of electrons"
     end if
 
     if (mod(n_electrons,2.0) /= 0.0) then
-        print*, "WARNING amount of electrons in system is not even!"
+        ! print*, "WARNING amount of electrons in system is not even!"
         stop "Amount of electrons in system is not even!"
     end if
 
