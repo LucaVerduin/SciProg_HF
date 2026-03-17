@@ -158,8 +158,7 @@ subroutine getInput(filename)
             write(io, '(a,/)')"INPUT --------"
             write(io, '(a)')"Atoms in system"
             do i=1,size(input_atoms)
-                write(io, *)input_atoms(i)%atom_type%symbol
-                write(io, *)input_atoms(i)%coordinates
+                write(io, *)input_atoms(i)%atom_type%symbol, input_atoms(i)%coordinates
             end do
             write(io, *)""
             write(io, '(a,t15,e12.5)')"Tolerance",tolerance
@@ -172,8 +171,7 @@ subroutine getInput(filename)
     else
         print '(a,/)', "Atoms in system:"
         do i=1,size(input_atoms)
-            print *, input_atoms(i)%atom_type%symbol
-            print *, input_atoms(i)%coordinates
+            print *, input_atoms(i)%atom_type%symbol, input_atoms(i)%coordinates
         end do
         print *, ""
         print '(a,e12.5)', "Tolerance: ",tolerance

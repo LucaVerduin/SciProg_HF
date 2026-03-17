@@ -1,4 +1,4 @@
-program HartreeFock
+program HartreFock
 
    ! Demonstration program that can be used as a starting point
    ! Lucas Visscher, March 2022
@@ -17,7 +17,7 @@ program HartreeFock
    
     filename = "CH4.txt"
     call getInput(filename)
-    call set_output(outfile, write_tofile)
+    call set_output(outfile, output_tofile)
     call generate_molecule()
     call define_basis()
     print '(3/,a)', ""
