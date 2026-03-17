@@ -130,12 +130,12 @@ subroutine SCFprocedure(n_AO, n_occ, max_cycles, tolerance, print_every)
 
     if (is_converged) then
         if (write_tofile) then
-            write(io, '(2/,a)')"END CALCULATION -----"
+            write(io, '(/,a)')"END CALCULATION -----"
             write(io, '(/,a,i4,a)')"Exited After ",icycle," SCF cycles"
             write(io, '(a,a)')"Exit status: ",exit_status
         else
-            print '(2/,a,i4,a)', "Exited After ",icycle," SCF cycles"
-            print '(a,a)',"Exit status:", exit_status
+            print '(/,a,i4,a)', "Exited After ",icycle," SCF cycles"
+            print '(a,t15,a)',"Exit status: ", exit_status
         end if
         exit
     end if
