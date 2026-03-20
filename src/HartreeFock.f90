@@ -21,7 +21,7 @@ integer :: io = 10
 contains
 
 subroutine set_output(outfile, outtofile)
-    character(50), intent(in) :: outfile
+    character(75), intent(in) :: outfile
     logical, intent(in) :: outtofile
     
     write_tofile = outtofile

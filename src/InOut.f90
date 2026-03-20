@@ -27,7 +27,7 @@ module inout
 contains
 
 subroutine getInput()
-    character(60) :: filename
+    character(75) :: filename
     character(300) :: line
     character(75) :: l_ang, exponents, temp_coordinates, dummy_char
     integer :: io, i, char, point_index
@@ -35,6 +35,7 @@ subroutine getInput()
 
     print *, "Enter input filename please."
     read *,filename
+    filename = "inputs/"//trim(filename)
 
     io = 15
     n_defined_atoms = 0
@@ -152,6 +153,7 @@ subroutine getInput()
                     output_tofile = .true.
                     dummy_char = trim(line(8:))
                     read(dummy_char, *)outfile
+                    outfile = "outputs/"//trim(outfile)
                 else if (line(1:10) == "printevery") then
                     read(line, *)dummy_char, print_every
                 end if
