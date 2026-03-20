@@ -151,4 +151,8 @@ Testing/
 #MYAPP
 myapp
 myapp.gnu.optimised
+
 testinput.txt
+
+#Outputs files from calculations
+*OUT.txt
