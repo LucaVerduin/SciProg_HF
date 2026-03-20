@@ -5,11 +5,13 @@ module HartreeFock
     use diagonalization
     implicit none
     private write_tofile, output_file, print_every, io
-    public SCFprocedure, coreHamiltonian, calculateDensity, H, F, V, T, S, C, eps, D, D_old, E_HF, delta_D, ao_integrals
-    public set_output
+    public SCFprocedure, coreHamiltonian, calculateDensity, H, F, V, T, S, C, eps, ao_integrals ! Variables used in HF calculation
+    public D, D_old, delta_D ! Denisty matrix variable and variables for checking convergence
+    public E_nn, E_HF ! Energy terms
+    public set_output ! Function to set output
 
 real(8), allocatable :: H(:,:), F(:,:), V(:,:),T(:,:),S(:,:), C(:,:), eps(:), D(:,:), D_old(:,:)
-real(8)  :: E_HF, delta_D
+real(8)  :: E_HF, delta_D, E_nn
 real(8), allocatable :: ao_integrals (:,:,:,:)
 character(50) :: output_file, exit_status
 logical :: write_tofile, is_converged
@@ -31,7 +33,8 @@ subroutine coreHamiltonian(n_AO, n_occ, molecule, ao_basis)
     integer, intent(in) :: n_AO, n_occ
      type(molecular_structure_t), intent(in) :: molecule
      type(basis_set_info_t), intent(in) :: ao_basis
-     integer :: kappa, lambda, mu, nu
+     real(8) :: R_ij
+     integer :: kappa, lambda, mu, nu, n_atoms, i, j
 
      ! Compute the overlap matrix
      allocate (S(n_AO,n_AO))
@@ -55,7 +58,19 @@ subroutine coreHamiltonian(n_AO, n_occ, molecule, ao_basis)
      allocate (C(n_AO,n_AO))
      allocate (eps(n_AO))
      call solve_genev (H,S,C,eps)
-     
+
+     n_atoms = molecule%num_atoms
+
+     E_nn = 0.d0
+     do i=1,n_atoms-1
+        do j=i+1,n_atoms
+            R_ij = sqrt(sum( ( molecule%coord(:,i) - molecule%coord(:,j) )**2 ))
+            !z*z/R
+            E_nn = E_nn + ( (molecule%charge(i) * molecule%charge(j)) / R_ij )
+        end do
+    end do
+
+     ! If write to file then open file, else set io to 6 (terminal)
      if (write_tofile) then
         io = 10
         open(io, file=output_file, status='old', access='append', action='write')
@@ -63,9 +78,11 @@ subroutine coreHamiltonian(n_AO, n_occ, molecule, ao_basis)
         io = 6
      end if
 
+        ! Write beginning of calculation results with eigenvalues for core hamiltonian
         write(io, '(2/,a,/)')"CALCULATION --------"
         write(io, '(a)')"Orbital energies for the core hamiltonian"
         write(io, '(8(f16.6))')eps
+        write(io, '(/,a,f16.10)') "Enn", E_nn
 
      if (write_tofile) then
       close(io)
@@ -97,7 +114,7 @@ subroutine SCFprocedure(n_AO, n_occ, max_cycles, tolerance, print_every)
     else
         io = 6
     end if
-    write(io, '(/,a)')""
+    write(io, '(/,a,t14,a,t32,a)')"Cycle","Energy HF","Delta D"
 
     ! SCF loop
     do
@@ -131,12 +148,14 @@ subroutine SCFprocedure(n_AO, n_occ, max_cycles, tolerance, print_every)
       end if
     
       if ( (mod(icycle, print_every)==0) .or. (icycle==max_cycles) ) then
-            write(io, '(a,2x,i4,2x,f14.8,a,f14.8)')"Energy cycle ", icycle, E_HF, " Ha       convergence: ", delta_D
+            ! write(io, '(a,2x,i4,2x,f14.8,a,f14.8)')"Energy cycle ", icycle, E_HF, " Ha       convergence: ", delta_D
+            write(io, '(i4,t14,f16.10,t32,f16.10)')icycle, E_HF, delta_D
       end if
 
     icycle = icycle + 1 ! Count # cycles
 
     if (is_converged) then
+        write(io, '(i4,t14,f16.10,t32,f16.10)')icycle, E_HF, delta_D
         write(io, '(/,a)')"END CALCULATION -----"
         write(io, '(/,a,i4,a)')"Exited After ",icycle," SCF cycles"
         write(io, '(a,a)')"Exit status: ",exit_status

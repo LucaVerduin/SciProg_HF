@@ -26,7 +26,7 @@ SETTINGS
 
 tolerance 0.000000001
 maxcycles 1000
-
+outfile CH4_OUT.txt
 printevery 5
 
 /SETTINGS

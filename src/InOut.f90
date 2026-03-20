@@ -219,8 +219,6 @@ end subroutine
 subroutine define_basis()
     integer :: atom, ifunc
 
-
-
     do atom = 1,size(input_atoms) ! Loop over all input atoms
         do ifunc = 1,size(input_atoms(atom)%atom_type%angular_momenta) ! Loop over all input angular momenta (all input functions in definition of %atom_Type)
             call add_shell_to_basis(ao_basis,&                                              ! Add to ao_basis
