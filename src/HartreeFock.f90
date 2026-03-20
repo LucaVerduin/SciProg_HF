@@ -82,7 +82,6 @@ subroutine coreHamiltonian(n_AO, n_occ, molecule, ao_basis)
         write(io, '(2/,a,/)')"CALCULATION --------"
         write(io, '(a)')"Orbital energies for the core hamiltonian"
         write(io, '(8(f16.6))')eps
-        write(io, '(/,a,f16.10)') "Enn", E_nn
 
      if (write_tofile) then
       close(io)
@@ -114,7 +113,8 @@ subroutine SCFprocedure(n_AO, n_occ, max_cycles, tolerance, print_every)
     else
         io = 6
     end if
-    write(io, '(/,a,t14,a,t32,a)')"Cycle","Energy HF","Delta D"
+    write(io, '(/,a)')"-------------------SCF procedure--------------------"
+    write(io, '(a,t13,a,t36,a)')"Cycle","Energy HF","Delta D"
 
     ! SCF loop
     do
@@ -149,15 +149,19 @@ subroutine SCFprocedure(n_AO, n_occ, max_cycles, tolerance, print_every)
     
       if ( (mod(icycle, print_every)==0) .or. (icycle==max_cycles) ) then
             ! write(io, '(a,2x,i4,2x,f14.8,a,f14.8)')"Energy cycle ", icycle, E_HF, " Ha       convergence: ", delta_D
-            write(io, '(i4,t14,f16.10,t32,f16.10)')icycle, E_HF, delta_D
+            write(io, '(i5,t13,f17.10,t36,f17.10)')icycle, E_HF, delta_D
       end if
 
     icycle = icycle + 1 ! Count # cycles
 
     if (is_converged) then
-        write(io, '(i4,t14,f16.10,t32,f16.10)')icycle, E_HF, delta_D
+        write(io, '(i5,t13,f17.10,t36,f17.10)')icycle, E_HF, delta_D
+        write(io, '(a)')"----------------------------------------------------"
         write(io, '(/,a)')"END CALCULATION -----"
-        write(io, '(/,a,i4,a)')"Exited After ",icycle," SCF cycles"
+        write(io, '(/,a,t10,f17.10)') "E_nuc", E_nn
+        write(io, '(a,t10,f17.10)')"E_hf", E_HF
+        write(io, '(a,t10,f17.10/)')"E_tot", E_HF+E_nn
+        write(io, '(a,i5,a)')"Exited After ",icycle," SCF cycles"
         write(io, '(a,a)')"Exit status: ",exit_status
         exit
     end if

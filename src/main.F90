@@ -30,7 +30,5 @@ program HartreFock
     call SCFprocedure(n_AO, n_occ, max_cycles, tolerance, print_every)
 
     stop "STOP HERE FOR SCF"
-   
-     print*, "The Hartree-Fock energy:    ", E_HF
 
    end

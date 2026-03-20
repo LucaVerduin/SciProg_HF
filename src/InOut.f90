@@ -128,6 +128,9 @@ subroutine getInput(filename)
                     read(line, *)point_index, temp_coordinates
                     input_atoms(index_atom)%atom_type => defined_atoms(point_index)
                     read(temp_coordinates, *)input_atoms(index_atom)%coordinates
+
+                    ! Convert from A to Bohr
+                    input_atoms(index_atom)%coordinates = input_atoms(index_atom)%coordinates*1.8897259886d0
                 end if
             end do
 
@@ -168,7 +171,7 @@ subroutine getInput(filename)
     write(io, '(a)')"Atoms in system"
 
     do i=1,size(input_atoms)
-        write(io, *)input_atoms(i)%atom_type%symbol, input_atoms(i)%coordinates
+        write(io, *)input_atoms(i)%atom_type%symbol, input_atoms(i)%coordinates/1.8897259886d0 ! Convert back to A (input) units
     end do
 
     write(io, *)""
