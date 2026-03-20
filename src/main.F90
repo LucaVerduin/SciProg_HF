@@ -11,12 +11,9 @@ program HartreFock
    use InOut
 
      implicit none
-
-     ! Variable naming as in the description of the exercise
-     character(32) :: filename
    
-    filename = "CH4.txt"
-    call getInput(filename)
+    ! filename = "CH4.txt"
+    call getInput()
     call set_output(outfile, output_tofile)
     call generate_molecule()
     call define_basis()
