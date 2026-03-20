@@ -29,6 +29,6 @@ program HartreFock
 
     call SCFprocedure(n_AO, n_occ, max_cycles, tolerance, print_every)
 
-    stop "STOP HERE FOR SCF"
+    ! stop "STOP HERE FOR SCF"
 
    end

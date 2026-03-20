@@ -171,6 +171,10 @@ subroutine SCFprocedure(n_AO, n_occ, max_cycles, tolerance, print_every)
     
     if (write_tofile) then
         close(io)
+        print '(a,/)', "Output to file on, detailed results in output file."
+        print '(a,t10,f17.10)',"E_tot", E_HF+E_nn
+        print '(a,i5,a)',"Exited After ", icycle," SCF cycles"
+        print '(a,a)',"Exit status: ", exit_status
     end if
 
 end subroutine
