@@ -10,9 +10,9 @@ module inout
 
     real(8) :: tolerance ! Tolerance criterium from input
     integer :: max_cycles ! max_cycles from input
-    integer :: print_every ! Determine every how many cycles to print in scf
+    integer :: print_every ! Print every n cycles in SCF 
     integer :: n_AO, n_occ ! To be determined from system
-    character(50) :: outfile ! Destination txt file for the output
+    character(75) :: outfile ! Destination txt file for the output
     logical :: output_tofile ! Used to enable writing to output file (only if it is given in input file)
 
     ! Variable containing molecule data
@@ -37,17 +37,19 @@ subroutine getInput()
     read *,filename
     filename = "inputs/"//trim(filename)
 
-    io = 15
-    n_defined_atoms = 0
-    n_atoms = 0
-    index_atom = 0
-    print_every = 5
-    output_tofile = .false.
+    io = 15                     ! Assign io value
+    n_defined_atoms = 0         ! Used to count how much to allocate atom_definitions array
+    n_atoms = 0                 ! Used to count how much to allocate input_atoms array
+    index_atom = 0              ! internal counter to check which atom to set
+    print_every = 5             ! default setting
+    output_tofile = .false.     ! Logical to determine if output to file or terminal
 
     open(io, file=filename, status='old', action='read')
 
     do
         read(io, '(a)', end=10)line
+
+        ! Lines starting with ! outside of "blocks" are ignored
         if (line(1:1) == "!") then
             continue
         end if
@@ -63,7 +65,7 @@ subroutine getInput()
                 if (line(1:13)=="/DEFINE ATOMS") then ! End with /DEFINE ATOMS
                     exit
                 else if (line(1:1) /= " ") then
-                    n_defined_atoms = n_defined_atoms + 1
+                    n_defined_atoms = n_defined_atoms + 1 ! Non empty line count as atom definitions
                 end if
             end do
 
@@ -74,7 +76,7 @@ subroutine getInput()
             end do
 
             index_atom = 0 ! Count which atom we are assigning
-            do i=1,rewind_lines
+            do i=1,rewind_lines ! Now now how many lines to read until /DEFINE ATOMS in principle
                 read(io, '(a)')line
                 if (line(1:13)=="/DEFINE ATOMS") then ! End with /DEFINE ATOMS
                     exit
@@ -91,13 +93,15 @@ subroutine getInput()
                         end if
                     end do
 
+                    ! Check if RHF even # electrons is obeyed
                     if (n_functions < defined_atoms(index_atom)%n_electrons/2) then
                         print '(a,1x,i3,2x,a)', "WARNING: amount of basis functions for atom", index_atom, "smaller than n_electrons/2"
                     end if
 
-                    ! print *, i, n_functions
+                    ! Allocate angular momenta and exponents for defined atom
                     allocate(defined_atoms(index_atom)%angular_momenta(n_functions))
                     allocate(defined_atoms(index_atom)%exponents(n_functions))
+                    ! Read angular momenta and exponents for defined atom
                     read(l_ang, *)defined_atoms(index_atom)%angular_momenta
                     read(exponents, *)defined_atoms(index_atom)%exponents
 
@@ -108,30 +112,32 @@ subroutine getInput()
         if (line(1:5) == "ATOMS") then
             rewind_lines = 0
             do
+                ! First count how many atoms in system
                 read(io, '(a)')line             
                     rewind_lines = rewind_lines + 1
                     if (line(1:6)=="/ATOMS") then ! End with /DEFINE ATOMS
                         exit
-                    else if (line(1:1) /= " ") then
+                    else if (line(1:1) /= " ") then ! Ignore empty lines
                         n_atoms = n_atoms + 1
                     end if
             end do
 
+            ! Allocate room for atoms
             allocate(input_atoms(n_atoms))
             do i=1,rewind_lines ! Rewind back to first line after DEFINE ATOMS
                 backspace(io)
             end do
 
-            index_atom = 0
+            index_atom = 0 ! Count which atom is being read
             do
                 read(io, '(a)')line
-                if (line(1:6)=="/ATOMS") then
+                if (line(1:6)=="/ATOMS") then ! If /ATOMS exit this loop
                     exit
-                else if (line(1:1) /= " ") then
+                else if (line(1:1) /= " ") then ! Ignore empty lines
                     index_atom = index_atom + 1
-                    read(line, *)point_index, temp_coordinates
-                    input_atoms(index_atom)%atom_type => defined_atoms(point_index)
-                    read(temp_coordinates, *)input_atoms(index_atom)%coordinates
+                    read(line, *)point_index, temp_coordinates ! Read temp_coordinates as text string
+                    input_atoms(index_atom)%atom_type => defined_atoms(point_index) ! Point atom_type to the correct atom definition
+                    read(temp_coordinates, *)input_atoms(index_atom)%coordinates ! Read from string the coordinates for the atom
 
                     ! Convert from A to Bohr
                     input_atoms(index_atom)%coordinates = input_atoms(index_atom)%coordinates*1.8897259886d0
@@ -140,21 +146,22 @@ subroutine getInput()
 
         end if
 
+        ! If statement for settings
         if (line(1:8) == "SETTINGS") then
             do
                 read(io, '(a)')line
-                if (line(1:9) == "/SETTINGS") then
+                if (line(1:9) == "/SETTINGS") then ! End this loop if /SETTINGS
                     exit
-                else if (line(1:9) == "tolerance") then
+                else if (line(1:9) == "tolerance") then ! Read tolerance
                     read(line, *)dummy_char, tolerance
-                else if (line(1:9) == "maxcycles") then
+                else if (line(1:9) == "maxcycles") then ! Read maxcycles
                     read(line, *)dummy_char, max_cycles
-                else if (line(1:7) == "outfile") then
-                    output_tofile = .true.
+                else if (line(1:7) == "outfile") then   ! Read outputfile
+                    output_tofile = .true.              ! Set output_tofile true
                     dummy_char = trim(line(8:))
                     read(dummy_char, *)outfile
-                    outfile = "outputs/"//trim(outfile)
-                else if (line(1:10) == "printevery") then
+                    outfile = "outputs/"//trim(outfile) ! Set output to ./outputs/ folder
+                else if (line(1:10) == "printevery") then   ! Set printevery variable
                     read(line, *)dummy_char, print_every
                 end if
 
@@ -165,6 +172,7 @@ subroutine getInput()
     end do
     10 close(io)
 
+    ! If output_tofile write set io to 10, else 6 for terminal
     if (output_tofile) then
         io = 10
         open(io, file=outfile, action='write')
@@ -172,6 +180,7 @@ subroutine getInput()
         io = 6
     end if
 
+    ! Write input information
     write(io, '(a,/)')"INPUT --------"
     write(io, '(a)')"Atoms in system"
 
@@ -198,17 +207,23 @@ subroutine generate_molecule()
     real(8) :: n_electrons
     integer :: i, n_atoms
 
+    ! get amount of atoms, allocate charge array and coords array
     n_atoms = size(input_atoms)
     allocate(charge(n_atoms))
     allocate(coords(3,n_atoms))
+
+    ! set counter to 0
     n_electrons = 0
 
+    ! loop over all input atoms, add charges to array and coords to arrays
+    ! Also count # electrons
     do i=1,size(input_atoms)
         charge(i) = input_atoms(i)%atom_type%charge
         coords(:,i) = input_atoms(i)%coordinates
         n_electrons = n_electrons + input_atoms(i)%atom_type%n_electrons
     end do
 
+    ! check if # electrons is even
     if (mod(n_electrons,2.0) == 0.0) then
         ! print '(a)', "Even amount of electrons"
     end if
@@ -218,8 +233,10 @@ subroutine generate_molecule()
         stop "Amount of electrons in system is not even!"
     end if
 
+    ! set n_occ orbitals
     n_occ = nint(n_electrons/2.0)
 
+    ! add atoms to molecule
     call add_atoms_to_molecule(molecule, charge, coords)
 
 end subroutine

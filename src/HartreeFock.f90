@@ -24,8 +24,8 @@ subroutine set_output(outfile, outtofile)
     character(75), intent(in) :: outfile
     logical, intent(in) :: outtofile
     
-    write_tofile = outtofile
-    output_file = outfile
+    write_tofile = outtofile    ! set local variables write_tofile
+    output_file = outfile       ! and output_file
 
 end subroutine
 
@@ -59,8 +59,10 @@ subroutine coreHamiltonian(n_AO, n_occ, molecule, ao_basis)
      allocate (eps(n_AO))
      call solve_genev (H,S,C,eps)
 
+     ! get n_atoms
      n_atoms = molecule%num_atoms
 
+     ! calculate nuclear nuclear interaction energy
      E_nn = 0.d0
      do i=1,n_atoms-1
         do j=i+1,n_atoms
@@ -87,10 +89,11 @@ subroutine coreHamiltonian(n_AO, n_occ, molecule, ao_basis)
       close(io)
      end if
 
-     ! Form the density matrix
+     ! allocate the density matrices
      allocate (D(n_AO,n_AO))
      allocate (D_old(n_AO,n_AO))
 
+     ! calculate density
      call calculateDensity(C,D,n_occ)
 
      allocate (ao_integrals(n_AO,n_AO,n_AO,n_AO))
@@ -105,14 +108,19 @@ subroutine SCFprocedure(n_AO, n_occ, max_cycles, tolerance, print_every)
     integer, intent(in) :: print_every
     integer :: icycle, kappa, lambda, mu, nu
 
+    ! set counter to 0
     icycle = 0
 
+    ! If write_tofile set io to 10 and open file
+    ! else set io to 6 (terminal)
     if (write_tofile) then
         io = 10
         open(io, file=output_file, status='old', access='append', action='write')
     else
         io = 6
     end if
+
+    ! Write beginning of SCF procedure
     write(io, '(/,a)')"-------------------SCF procedure--------------------"
     write(io, '(a,t13,a,t36,a)')"Cycle","Energy HF","Delta D"
 
@@ -147,6 +155,7 @@ subroutine SCFprocedure(n_AO, n_occ, max_cycles, tolerance, print_every)
         exit_status = "Max Iterations"
       end if
     
+      ! Print every print_every cycles
       if ( (mod(icycle, print_every)==0) .or. (icycle==max_cycles) ) then
             ! write(io, '(a,2x,i4,2x,f14.8,a,f14.8)')"Energy cycle ", icycle, E_HF, " Ha       convergence: ", delta_D
             write(io, '(i5,t13,f17.10,t36,f17.10)')icycle, E_HF, delta_D
@@ -154,9 +163,11 @@ subroutine SCFprocedure(n_AO, n_occ, max_cycles, tolerance, print_every)
 
     icycle = icycle + 1 ! Count # cycles
 
+    ! if converged, write one more time SCF cycle write
     if (is_converged) then
         write(io, '(i5,t13,f17.10,t36,f17.10)')icycle, E_HF, delta_D
         write(io, '(a)')"----------------------------------------------------"
+        ! Then write end of calculation and final status
         write(io, '(/,a)')"END CALCULATION -----"
         write(io, '(/,a,t10,f17.10)') "E_nuc", E_nn
         write(io, '(a,t10,f17.10)')"E_hf", E_HF
@@ -169,6 +180,7 @@ subroutine SCFprocedure(n_AO, n_occ, max_cycles, tolerance, print_every)
     end do
     ! End SCF loop
     
+    ! If write_tofile also print short summary to terminal
     if (write_tofile) then
         close(io)
         print '(a,/)', "Output to file on, detailed results in output file."
@@ -185,6 +197,7 @@ subroutine calculateDensity(C, D, n_occ)
     integer, intent(in) :: n_occ
     integer :: kappa, lambda
 
+    ! calculate density matric from coefficients
     do lambda = 1, size(D,2)
         do kappa = 1, size(D,2)
             D(kappa,lambda) = sum(C(kappa,1:n_occ)*C(lambda,1:n_occ))
