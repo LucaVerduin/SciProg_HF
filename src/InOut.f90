@@ -42,6 +42,7 @@ subroutine getInput()
     n_atoms = 0                 ! Used to count how much to allocate input_atoms array
     index_atom = 0              ! internal counter to check which atom to set
     print_every = 5             ! default setting
+    tolerance = 0.0001          ! default setting
     output_tofile = .false.     ! Logical to determine if output to file or terminal
 
     open(io, file=filename, status='old', action='read')
@@ -60,7 +61,7 @@ subroutine getInput()
             ! First find how many defined_atoms need to be allocated
             rewind_lines = 0 ! Count so instead of reopening just rewind # of lines
             do
-                read(io, '(a)')line             
+                read(io, '(a)', end=101)line             
                 rewind_lines = rewind_lines + 1
                 if (line(1:13)=="/DEFINE ATOMS") then ! End with /DEFINE ATOMS
                     exit
@@ -113,7 +114,7 @@ subroutine getInput()
             rewind_lines = 0
             do
                 ! First count how many atoms in system
-                read(io, '(a)')line             
+                read(io, '(a)', end=102)line             
                     rewind_lines = rewind_lines + 1
                     if (line(1:6)=="/ATOMS") then ! End with /DEFINE ATOMS
                         exit
@@ -149,7 +150,7 @@ subroutine getInput()
         ! If statement for settings
         if (line(1:8) == "SETTINGS") then
             do
-                read(io, '(a)')line
+                read(io, '(a)', end=103)line
                 if (line(1:9) == "/SETTINGS") then ! End this loop if /SETTINGS
                     exit
                 else if (line(1:9) == "tolerance") then ! Read tolerance
@@ -199,6 +200,11 @@ subroutine getInput()
         close(io)
     end if
 
+    return
+
+    101 stop "Error: block not ended with '/DEFINE ATOMS'"
+    102 stop "Error: block not ended with '/ATOMS'"
+    103 stop "Error: block not ended with '/SETTINGS'"
 
 end subroutine
 
