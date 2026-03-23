@@ -201,7 +201,7 @@ subroutine getInput()
     end if
 
     return
-
+    ! Errors for reaching end of file while reading a block (should not happen)
     101 stop "Error: block not ended with '/DEFINE ATOMS'"
     102 stop "Error: block not ended with '/ATOMS'"
     103 stop "Error: block not ended with '/SETTINGS'"
