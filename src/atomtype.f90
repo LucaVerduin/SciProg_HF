@@ -1,3 +1,6 @@
+! By Luca Verduin
+! 03-2026
+
 module atom_definition
     implicit none
     public atom, atom_pointer
