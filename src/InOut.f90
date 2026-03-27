@@ -1,3 +1,6 @@
+! By Luca Verduin
+! 03-2026
+
 module inout
     use molecular_structure
     use ao_basis
@@ -42,6 +45,7 @@ subroutine getInput()
     n_atoms = 0                 ! Used to count how much to allocate input_atoms array
     index_atom = 0              ! internal counter to check which atom to set
     print_every = 5             ! default setting
+    tolerance = 0.0001          ! default setting
     output_tofile = .false.     ! Logical to determine if output to file or terminal
 
     open(io, file=filename, status='old', action='read')
@@ -60,10 +64,12 @@ subroutine getInput()
             ! First find how many defined_atoms need to be allocated
             rewind_lines = 0 ! Count so instead of reopening just rewind # of lines
             do
-                read(io, '(a)')line             
+                read(io, '(a)', end=101)line             
                 rewind_lines = rewind_lines + 1
                 if (line(1:13)=="/DEFINE ATOMS") then ! End with /DEFINE ATOMS
                     exit
+                else if (line(1:1) == "!") then
+                    continue
                 else if (line(1:1) /= " ") then
                     n_defined_atoms = n_defined_atoms + 1 ! Non empty line count as atom definitions
                 end if
@@ -80,6 +86,8 @@ subroutine getInput()
                 read(io, '(a)')line
                 if (line(1:13)=="/DEFINE ATOMS") then ! End with /DEFINE ATOMS
                     exit
+                else if (line(1:1) == '!') then
+                    continue
                 else if (line(1:1)/=" ") then   ! Ignore lines starting with a space
                     index_atom = index_atom + 1 ! Increase index counter
 
@@ -113,10 +121,12 @@ subroutine getInput()
             rewind_lines = 0
             do
                 ! First count how many atoms in system
-                read(io, '(a)')line             
+                read(io, '(a)', end=102)line             
                     rewind_lines = rewind_lines + 1
                     if (line(1:6)=="/ATOMS") then ! End with /DEFINE ATOMS
                         exit
+                    else if (line(1:1) == "!") then
+                        continue
                     else if (line(1:1) /= " ") then ! Ignore empty lines
                         n_atoms = n_atoms + 1
                     end if
@@ -133,6 +143,8 @@ subroutine getInput()
                 read(io, '(a)')line
                 if (line(1:6)=="/ATOMS") then ! If /ATOMS exit this loop
                     exit
+                else if (line(1:1) == '!') then
+                    continue
                 else if (line(1:1) /= " ") then ! Ignore empty lines
                     index_atom = index_atom + 1
                     read(line, *)point_index, temp_coordinates ! Read temp_coordinates as text string
@@ -149,9 +161,11 @@ subroutine getInput()
         ! If statement for settings
         if (line(1:8) == "SETTINGS") then
             do
-                read(io, '(a)')line
+                read(io, '(a)', end=103)line
                 if (line(1:9) == "/SETTINGS") then ! End this loop if /SETTINGS
                     exit
+                else if (line(1:1) == "!") then
+                    continue
                 else if (line(1:9) == "tolerance") then ! Read tolerance
                     read(line, *)dummy_char, tolerance
                 else if (line(1:9) == "maxcycles") then ! Read maxcycles
@@ -199,6 +213,11 @@ subroutine getInput()
         close(io)
     end if
 
+    return
+    ! Errors for reaching end of file while reading a block (should not happen)
+    101 stop "Error: block not ended with '/DEFINE ATOMS'"
+    102 stop "Error: block not ended with '/ATOMS'"
+    103 stop "Error: block not ended with '/SETTINGS'"
 
 end subroutine
 

@@ -1,3 +1,6 @@
+! By Luca Verduin
+! 03-2026
+
 module HartreeFock
     use molecular_structure
     use ao_basis

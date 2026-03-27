@@ -1,3 +1,6 @@
+! By Luca Verduin
+! 03-2026
+
 program HartreFock
 
    ! Demonstration program that can be used as a starting point
