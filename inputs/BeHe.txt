@@ -17,8 +17,6 @@ ATOMS
 
 /ATOMS
 
-! comments can not be put inside of a block (i.e. DEFINE ATOMS - /DEFINE ATOMS or ATOMS - /ATOMS)
-
 SETTINGS
 
 tolerance 0.0000001
